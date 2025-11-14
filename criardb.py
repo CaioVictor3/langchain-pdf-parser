@@ -38,14 +38,8 @@ def dividir_docs_em_chunks(documentos):
 
 
 # vetorização dos chunks (a ser implementado)
-def vetorizar_chunks(chunåks):
-   db = Chroma.from_documents(
-        documents=chunks, 
-        embedding=OpenAIEmbeddings(),
-        persist_directory="db"
-    )
-   db.persist()
-   db = None
-
-
+def vetorizar_chunks(chunks):
+   db = Chroma.from_documents(chunks, OpenAIEmbeddings(), persist_directory="db")
+   print("Database criado com sucesso!")
+    
 criar_db()
