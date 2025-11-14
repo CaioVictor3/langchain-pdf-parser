@@ -1,36 +1,41 @@
 from langchain_community.document_loaders import PyPDFDirectoryLoader
-from lancgchain.text_splitter import RecursiveCharacterTextSplitter #percorre documento e divide em chunks
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
 
 PASTA_BASE = "base"
 
 def criar_db():
-    #carregar docs
+    # carregar docs
     documentos = carregar_documentos()
-    print(documentos)
-   # chunks = dividir_docs_em_chunks(documentos)   
-   # vetorizar_chunks(chunks)
-    
+    chunks = dividir_docs_em_chunks(documentos)
+    vetorizar_chunks(chunks)
+
+
 def carregar_documentos():
     carregador = PyPDFDirectoryLoader(PASTA_BASE, glob="*.pdf")
     documentos = carregador.load()
     return documentos
 
+
+# divisão de docs em chunks
 def dividir_docs_em_chunks(documentos):
 
-    separador_documentos= RecursiveCharacterTextSplitter(
-        chunk_size=1000,
-        chunk_overlap=200,
+    separador_documentos = RecursiveCharacterTextSplitter(
+        chunk_size=1000,           # tamanho de cada chunk
+        chunk_overlap=350,         # sobreposição para manter contexto
         length_function=len,
+        add_start_index=True,
     )
-    
+
+    chunks = separador_documentos.split_documents(documentos)
+    print(f"Número de chunks criados: {len(chunks)}")
     return chunks
 
-    #divisao de docs em chunks
 
-    #vetorizacao dos cunks em embeding
-
+# vetorização dos chunks (a ser implementado)
+def vetorizar_chunks(chunks):
+    print("Função de vetorização ainda não implementada.")
+    pass
 
 
 criar_db()
-
-#pip install python-dotenv langchain langchain-openai langchain-community langchain-chroma chromadb openai pypdf
