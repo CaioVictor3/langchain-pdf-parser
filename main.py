@@ -12,7 +12,7 @@ prompt_template = """Você é um assistente de IA especializado em responder per
 {pergunta}
 com base em documentos fornecidos. Use as informações dos documentos para formular suas respostas:
 {base_de_conhecimento}
-Se a informação não estiver disponível nos documentos, responda com "Desculpe, não tenho essa informação no momento."""
+"""
 
 def pergunta():
 
@@ -23,27 +23,22 @@ def pergunta():
 
  resultados = db.similarity_search(pergunta, k=4)
 
- if(len(resultados) == 0) or resultados[0][1] < 0.7 :
+ if len(resultados) == 0:
   print("Desculpe, não tenho essa informação no momento.")
+  return
 
+ textos_resultado = []
+ for resultado in resultados:
+  texto = resultado.page_content
+  textos_resultado.append(texto)
 
- print(resultados)
- print(f"Número de documentos recuperados: {len(resultados)}")
- return
+ base_conhecimento = "\n\n----\n\n".join(textos_resultado)
 
-textos_resultado = []
-for resultado in resultados:
- texto = resultado[0].page_content
- textos_resultado.append(texto)
+ prompt = ChatPromptTemplate.from_template(prompt_template)
+ prompt = prompt.invoke({"pergunta": pergunta, "base_de_conhecimento": base_conhecimento})
 
-base_conhecimento = "\n\n----\n\n".join(textos_resultado)
-
-
-prompt = ChatPromptTemplate.from_template(prompt_template)
-prompt = prompt.invoke({"pergunta": pergunta, "base_de_conhecimento": base_conhecimento})
-
-modelo = ChatOpenAI()
-texto_resposta = modelo.invoke(prompt)
-print("Resposta da IA:", texto_resposta)
+ modelo = ChatOpenAI()
+ texto_resposta = modelo.invoke(prompt).content
+ print("Resposta da IA:", texto_resposta)
 
 pergunta()
