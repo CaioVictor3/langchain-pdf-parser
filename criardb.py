@@ -33,9 +33,8 @@ def dividir_docs_em_chunks(documentos):
 
 
 # vetorização dos chunks (a ser implementado)
-def vetorizar_chunks(chunks):
-    print("Função de vetorização ainda não implementada.")
-    pass
+def vetorizar_chunks(chunåks):
+   pass
 
 
 criar_db()
