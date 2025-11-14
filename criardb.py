@@ -1,5 +1,10 @@
 from langchain_community.document_loaders import PyPDFDirectoryLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_chroma.vectorstores import Chroma
+from langchain_openai import OpenAIEmbeddings
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 PASTA_BASE = "base"
@@ -21,7 +26,7 @@ def carregar_documentos():
 def dividir_docs_em_chunks(documentos):
 
     separador_documentos = RecursiveCharacterTextSplitter(
-        chunk_size=1000,           # tamanho de cada chunk
+        chunk_size=2000,           # tamanho de cada chunk
         chunk_overlap=350,         # sobreposição para manter contexto
         length_function=len,
         add_start_index=True,
@@ -34,7 +39,13 @@ def dividir_docs_em_chunks(documentos):
 
 # vetorização dos chunks (a ser implementado)
 def vetorizar_chunks(chunåks):
-   pass
+   db = Chroma.from_documents(
+        documents=chunks, 
+        embedding=OpenAIEmbeddings(),
+        persist_directory="db"
+    )
+   db.persist()
+   db = None
 
 
 criar_db()
