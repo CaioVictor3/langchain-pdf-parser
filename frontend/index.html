@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG AI - Assistente de IA</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container-fluid min-vh-100 d-flex flex-column">
+        <!-- Header -->
+        <header class="bg-primary-light text-white py-4 shadow-sm">
+            <div class="container">
+                <h1 class="mb-0">
+                    <i class="bi bi-robot"></i> RAG AI - Assistente Inteligente
+                </h1>
+                <p class="mb-0 mt-2 text-light">Faça perguntas e receba respostas baseadas em documentos processados</p>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-grow-1 py-5">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8 col-xl-7">
+                        <!-- Card Principal -->
+                        <div class="card shadow-lg border-0">
+                            <div class="card-body p-4">
+                                <!-- Formulário de Pergunta -->
+                                <div class="mb-4">
+                                    <label for="perguntaInput" class="form-label fw-bold text-primary">
+                                        <i class="bi bi-question-circle"></i> Sua Pergunta
+                                    </label>
+                                    <textarea 
+                                        class="form-control form-control-lg" 
+                                        id="perguntaInput" 
+                                        rows="3" 
+                                        placeholder="Digite sua pergunta aqui..."
+                                        required
+                                    ></textarea>
+                                    <div class="form-text">Digite sua pergunta e clique em "Enviar" para obter a resposta.</div>
+                                </div>
+
+                                <!-- Botão de Envio -->
+                                <div class="d-grid gap-2 mb-4">
+                                    <button 
+                                        type="button" 
+                                        class="btn btn-primary btn-lg" 
+                                        id="btnEnviar"
+                                        onclick="enviarPergunta()"
+                                    >
+                                        <span id="btnText">
+                                            <i class="bi bi-send"></i> Enviar Pergunta
+                                        </span>
+                                        <span id="btnSpinner" class="spinner-border spinner-border-sm d-none" role="status">
+                                            <span class="visually-hidden">Carregando...</span>
+                                        </span>
+                                    </button>
+                                </div>
+
+                                <!-- Área de Resposta -->
+                                <div id="areaResposta" class="d-none">
+                                    <hr class="my-4">
+                                    <label class="form-label fw-bold text-primary">
+                                        <i class="bi bi-chat-left-text"></i> Resposta
+                                    </label>
+                                    <div class="card bg-light border-0">
+                                        <div class="card-body">
+                                            <div id="respostaTexto" class="text-dark">
+                                                <!-- Resposta será inserida aqui -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Área de Erro -->
+                                <div id="areaErro" class="d-none">
+                                    <hr class="my-4">
+                                    <div class="alert alert-danger" role="alert">
+                                        <i class="bi bi-exclamation-triangle"></i>
+                                        <strong>Erro:</strong> <span id="erroTexto"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-primary-light text-white py-3 mt-auto">
+            <div class="container text-center">
+                <p class="mb-0 small">© 2024 RAG AI Project - Sistema de Retrieval-Augmented Generation</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <!-- Custom JS -->
+    <script src="script.js"></script>
+</body>
+</html>
+

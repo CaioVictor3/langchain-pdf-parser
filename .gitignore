@@ -1,3 +1,9 @@
 .env
 .env.local
 .env.*.local
+
+# Logs e arquivos temporários
+*.log
+.pids
+backend.log
+frontend.log
