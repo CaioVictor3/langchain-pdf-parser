@@ -31,34 +31,34 @@ def processar_pergunta(pergunta: str) -> str:
         str: A resposta processada pela IA baseada nos documentos
     """
     try:
-        # Inicializa embeddings e banco de dados vetorial
+
         funcao_embeddings = OpenAIEmbeddings()
         db = Chroma(persist_directory=CAMINHO_DB, embedding_function=funcao_embeddings)
-        
-        # Busca documentos similares
+
+
         resultados = db.similarity_search(pergunta, k=4)
         
-        # Verifica se encontrou resultados
+
         if len(resultados) == 0:
             return "Desculpe, não tenho essa informação no momento."
         
-        # Extrai o conteúdo dos documentos encontrados
+
         textos_resultado = []
         for resultado in resultados:
             texto = resultado.page_content
             textos_resultado.append(texto)
         
-        # Junta os textos em uma base de conhecimento
+
         base_conhecimento = "\n\n----\n\n".join(textos_resultado)
         
-        # Cria e invoca o prompt
+
         prompt = ChatPromptTemplate.from_template(prompt_template)
         prompt_invocado = prompt.invoke({
             "pergunta": pergunta,
             "base_de_conhecimento": base_conhecimento
         })
         
-        # Gera a resposta usando o modelo de IA
+
         modelo = ChatOpenAI()
         texto_resposta = modelo.invoke(prompt_invocado).content
         

@@ -3,28 +3,62 @@
  * Gerencia a comunicação com o backend via fetch/AJAX
  */
 
-// URL da API backend (ajuste se necessário)
+// URL da API backend
 const API_URL = 'http://localhost:5001/api/pergunta';
+
+// Referências aos elementos
+let chatMessages;
+let perguntaInput;
+let btnEnviar;
+
+/**
+ * Inicialização quando o DOM estiver carregado
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    chatMessages = document.getElementById('chatMessages');
+    perguntaInput = document.getElementById('perguntaInput');
+    btnEnviar = document.getElementById('btnEnviar');
+    
+    // Auto-resize do textarea
+    perguntaInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
+    
+    // Enviar com Enter (Shift+Enter para nova linha)
+    perguntaInput.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            enviarPergunta();
+        }
+    });
+    
+    // Foca no input ao carregar
+    perguntaInput.focus();
+});
 
 /**
  * Função principal para enviar pergunta ao backend
  */
 async function enviarPergunta() {
-    // Obtém o valor da pergunta
-    const perguntaInput = document.getElementById('perguntaInput');
     const pergunta = perguntaInput.value.trim();
     
     // Validação
     if (!pergunta) {
-        alert('Por favor, digite uma pergunta antes de enviar.');
-        perguntaInput.focus();
         return;
     }
     
-    // Esconde áreas anteriores
-    esconderAreas();
+    // Adiciona mensagem do usuário ao chat
+    adicionarMensagemUsuario(pergunta);
     
-    // Mostra loading
+    // Limpa o input
+    perguntaInput.value = '';
+    perguntaInput.style.height = 'auto';
+    
+    // Mostra indicador de digitação
+    const typingId = mostrarTypingIndicator();
+    
+    // Desabilita botão
     mostrarLoading(true);
     
     try {
@@ -39,6 +73,9 @@ async function enviarPergunta() {
             })
         });
         
+        // Remove indicador de digitação
+        removerTypingIndicator(typingId);
+        
         // Verifica se a resposta foi bem-sucedida
         if (!response.ok) {
             throw new Error(`Erro HTTP: ${response.status}`);
@@ -49,65 +86,124 @@ async function enviarPergunta() {
         
         // Verifica se há erro na resposta
         if (data.erro) {
-            mostrarErro(data.erro);
+            adicionarMensagemErro(data.erro);
         } else if (data.resposta) {
-            mostrarResposta(data.resposta);
+            adicionarMensagemIA(data.resposta);
         } else {
-            mostrarErro('Resposta inválida do servidor.');
+            adicionarMensagemErro('Resposta inválida do servidor.');
         }
         
     } catch (error) {
         console.error('Erro ao enviar pergunta:', error);
-        mostrarErro(`Erro ao conectar com o servidor: ${error.message}. Verifique se o backend está rodando.`);
+        removerTypingIndicator(typingId);
+        adicionarMensagemErro(`Erro ao conectar com o servidor: ${error.message}. Verifique se o backend está rodando.`);
     } finally {
         // Remove loading
         mostrarLoading(false);
+        perguntaInput.focus();
     }
 }
 
 /**
- * Mostra a resposta na tela
+ * Adiciona mensagem do usuário ao chat
  */
-function mostrarResposta(resposta) {
-    const areaResposta = document.getElementById('areaResposta');
-    const respostaTexto = document.getElementById('respostaTexto');
+function adicionarMensagemUsuario(texto) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message message-user';
     
-    respostaTexto.textContent = resposta;
-    areaResposta.classList.remove('d-none');
-    areaResposta.classList.add('fade-in');
+    messageDiv.innerHTML = `
+        <div class="message-content">
+            <div class="message-bubble">
+                <p>${escapeHtml(texto)}</p>
+            </div>
+        </div>
+        <div class="message-avatar">
+            <i class="bi bi-person-fill"></i>
+        </div>
+    `;
     
-    // Scroll suave até a resposta
-    areaResposta.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    chatMessages.appendChild(messageDiv);
+    scrollToBottom();
 }
 
 /**
- * Mostra mensagem de erro
+ * Adiciona mensagem da IA ao chat
  */
-function mostrarErro(mensagem) {
-    const areaErro = document.getElementById('areaErro');
-    const erroTexto = document.getElementById('erroTexto');
+function adicionarMensagemIA(texto) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message message-ai';
     
-    erroTexto.textContent = mensagem;
-    areaErro.classList.remove('d-none');
-    areaErro.classList.add('fade-in');
+    messageDiv.innerHTML = `
+        <div class="message-avatar">
+            <i class="bi bi-robot"></i>
+        </div>
+        <div class="message-content">
+            <div class="message-bubble">
+                <p>${escapeHtml(texto)}</p>
+            </div>
+        </div>
+    `;
     
-    // Scroll suave até o erro
-    areaErro.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    chatMessages.appendChild(messageDiv);
+    scrollToBottom();
 }
 
 /**
- * Esconde as áreas de resposta e erro
+ * Adiciona mensagem de erro
  */
-function esconderAreas() {
-    document.getElementById('areaResposta').classList.add('d-none');
-    document.getElementById('areaErro').classList.add('d-none');
+function adicionarMensagemErro(mensagem) {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'message-error';
+    errorDiv.innerHTML = `<p><i class="bi bi-exclamation-triangle"></i> ${escapeHtml(mensagem)}</p>`;
+    
+    chatMessages.appendChild(errorDiv);
+    scrollToBottom();
+}
+
+/**
+ * Mostra indicador de digitação
+ */
+function mostrarTypingIndicator() {
+    const typingId = 'typing-' + Date.now();
+    const messageDiv = document.createElement('div');
+    messageDiv.id = typingId;
+    messageDiv.className = 'message message-ai';
+    
+    messageDiv.innerHTML = `
+        <div class="message-avatar">
+            <i class="bi bi-robot"></i>
+        </div>
+        <div class="message-content">
+            <div class="message-bubble">
+                <div class="typing-indicator">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    chatMessages.appendChild(messageDiv);
+    scrollToBottom();
+    
+    return typingId;
+}
+
+/**
+ * Remove indicador de digitação
+ */
+function removerTypingIndicator(typingId) {
+    const typingElement = document.getElementById(typingId);
+    if (typingElement) {
+        typingElement.remove();
+    }
 }
 
 /**
  * Controla o estado de loading do botão
  */
 function mostrarLoading(mostrar) {
-    const btnEnviar = document.getElementById('btnEnviar');
     const btnText = document.getElementById('btnText');
     const btnSpinner = document.getElementById('btnSpinner');
     
@@ -123,20 +219,22 @@ function mostrarLoading(mostrar) {
 }
 
 /**
- * Permite enviar pergunta pressionando Enter (Ctrl+Enter para quebra de linha)
+ * Scroll suave até o final do chat
  */
-document.addEventListener('DOMContentLoaded', function() {
-    const perguntaInput = document.getElementById('perguntaInput');
-    
-    perguntaInput.addEventListener('keydown', function(event) {
-        // Enter sem Ctrl/Shift envia a pergunta
-        if (event.key === 'Enter' && !event.ctrlKey && !event.shiftKey) {
-            event.preventDefault();
-            enviarPergunta();
-        }
-    });
-    
-    // Foca no input ao carregar a página
-    perguntaInput.focus();
-});
+function scrollToBottom() {
+    setTimeout(() => {
+        chatMessages.scrollTo({
+            top: chatMessages.scrollHeight,
+            behavior: 'smooth'
+        });
+    }, 100);
+}
 
+/**
+ * Escapa HTML para prevenir XSS
+ */
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
