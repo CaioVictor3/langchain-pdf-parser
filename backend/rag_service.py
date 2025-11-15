@@ -14,10 +14,20 @@ load_dotenv()
 
 CAMINHO_DB = "db"
 
-prompt_template = """Você é um assistente de IA especializado em responder perguntas:
+prompt_template = """Você é um assistente de IA especializado em responder perguntas com base em documentos fornecidos.
+
+Pergunta do usuário:
 {pergunta}
-com base em documentos fornecidos. Use as informações dos documentos para formular suas respostas:
+
+Base de conhecimento (com informações sobre a fonte de cada trecho):
 {base_de_conhecimento}
+
+Instruções:
+-Responda sempre de forma organizada, clara e objetiva.
+-Ao explicar procedimentos, utilize tópicos ou passos estruturados sempre que possível.
+-Se a informação solicitada não estiver presente nos documentos fornecidos, informe claramente que essa informação não está disponível.
+-Ao finalizar uma resposta, não declare que não existem mais passos ou informações adicionais; simplesmente encerre a explicação.
+-Priorize precisão e simplicidade, evitando detalhes desnecessários.
 """
 
 def processar_pergunta(pergunta: str) -> str:
@@ -36,7 +46,8 @@ def processar_pergunta(pergunta: str) -> str:
         db = Chroma(persist_directory=CAMINHO_DB, embedding_function=funcao_embeddings)
 
 
-        resultados = db.similarity_search(pergunta, k=4)
+        # Busca documentos similares com metadados
+        resultados = db.similarity_search_with_score(pergunta, k=4)
         
 
         if len(resultados) == 0:
@@ -44,12 +55,27 @@ def processar_pergunta(pergunta: str) -> str:
         
 
         textos_resultado = []
-        for resultado in resultados:
+        fontes_usadas = set()  # Para rastrear quais PDFs foram usados
+        
+        for resultado, score in resultados:
             texto = resultado.page_content
-            textos_resultado.append(texto)
+            fonte = resultado.metadata.get('fonte', 'Documento desconhecido')
+            arquivo = resultado.metadata.get('arquivo', 'arquivo_desconhecido.pdf')
+            pagina = resultado.metadata.get('page', 'N/A')
+            
+            # Adiciona informação da fonte ao texto
+            texto_com_fonte = f"[Fonte: {fonte} - Página {pagina}]\n{texto}"
+            textos_resultado.append(texto_com_fonte)
+            fontes_usadas.add(fonte)
         
 
+        # Junta os textos com separador e adiciona informação sobre as fontes
         base_conhecimento = "\n\n----\n\n".join(textos_resultado)
+        
+        # Adiciona informação sobre quais documentos foram consultados
+        if fontes_usadas:
+            fontes_info = f"\n\n[Documentos consultados: {', '.join(sorted(fontes_usadas))}]"
+            base_conhecimento = base_conhecimento + fontes_info
         
 
         prompt = ChatPromptTemplate.from_template(prompt_template)
