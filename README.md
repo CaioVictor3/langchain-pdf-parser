@@ -277,18 +277,3 @@ Ou use o script `stop.sh` para limpar tudo.
 
 4. **Performance**: O primeiro processamento de documentos pode demorar. Após indexado, as buscas são rápidas.
 
-## 🤝 Contribuindo
-
-Contribuições são bem-vindas! Sinta-se à vontade para abrir issues ou pull requests.
-
-## 📄 Licença
-
-[Especifique a licença do projeto]
-
-## 👤 Autor
-
-[Seu nome/informações]
-
----
-
-**Desenvolvido com ❤️ usando Flask e React**
